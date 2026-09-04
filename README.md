@@ -1,78 +1,99 @@
-<<<<<<< HEAD
 # AI University Platform — Phase 1 Foundation
 
-> A modern full-stack academic web platform built with **Next.js**, **NestJS**, **Prisma ORM**, and **PostgreSQL**. Engineered with clean architecture ready for Phase 2 campus operations and Phase 3 Python FastAPI / RAG / LLM AI services.
+> A modern full-stack academic web platform built with **Next.js**, **NestJS**, **Prisma ORM**, and **PostgreSQL**. Engineered with a clean architecture ready for Phase 2 campus operations and Phase 3 Python FastAPI / RAG / LLM AI services.
 
 ---
 
 ## 1. Project Overview
 
-The **AI University Platform** provides an institutional management portal for universities. Phase 1 establishes the rock-solid architectural core:
-- **Role-Based Authentication & Governance**: Strict multi-role separation for **Students**, **Faculty**, and **Administrators**.
-- **Cryptographic Security**: Password hashing with `bcryptjs`, JWT access tokens (15m expiry) paired with refresh token rotation (7d expiry) and database revocation tracking.
-- **Relational Integrity**: Academic hierarchy modeling Departments, Degree Courses, Curriculums/Subjects, Faculty allocations, and Student enrollments in PostgreSQL via Prisma ORM.
-- **Centralized Admin Control**: Interactive management interfaces for Departments, Courses, Subjects, Students, Faculty, and System Users.
-- **Responsive University SaaS UI**: Modern dashboard experience with TanStack Query caching, React Hook Form, and Tailwind CSS.
-- **API Documentation**: OpenAPI / Swagger documentation at `/api/docs` with Bearer token authentication support.
+The **AI University Platform** provides an institutional management portal for universities.
+
+Phase 1 establishes the core architecture:
+
+* **Role-Based Authentication & Governance** — Strict separation for **Students**, **Faculty**, and **Administrators**.
+* **Cryptographic Security** — Password hashing with `bcryptjs`, JWT access tokens, refresh-token rotation, and database-based token revocation.
+* **Relational Integrity** — Departments, degree courses, subjects, faculty, students, and academic relationships using PostgreSQL and Prisma ORM.
+* **Centralized Admin Control** — Management interfaces for Departments, Courses, Subjects, Students, Faculty, and Users.
+* **Responsive University UI** — Next.js dashboard with TanStack Query, React Hook Form, Zod, and Tailwind CSS.
+* **API Documentation** — OpenAPI / Swagger documentation available at `/api/docs`.
 
 ---
 
 ## 2. Technology Stack
 
 ### Frontend
-- **Framework**: Next.js 16 (App Router)
-- **Library**: React 19, TypeScript
-- **Styling**: Tailwind CSS
-- **Data Fetching & Cache**: TanStack React Query v5
-- **Forms & Validation**: React Hook Form, Zod
-- **HTTP Client**: Centralized Axios client with automatic token refresh interceptors
-- **Icons**: Lucide React
+
+* **Framework:** Next.js 16
+* **UI Library:** React 19
+* **Language:** TypeScript
+* **Styling:** Tailwind CSS
+* **Data Fetching:** TanStack React Query v5
+* **Forms:** React Hook Form
+* **Validation:** Zod
+* **HTTP Client:** Axios
+* **Icons:** Lucide React
 
 ### Backend
-- **Framework**: NestJS 10 (TypeScript REST API)
-- **ORM**: Prisma ORM 5
-- **Database**: PostgreSQL (Docker-ready or cloud-hosted via Render / Neon / Supabase)
-- **Authentication**: Passport JWT, JWT Access & Refresh Token rotation
-- **Security**: `bcryptjs` password hashing, Global HttpExceptionFilter, RolesGuard
-- **Validation**: `class-validator`, `class-transformer`
-- **Documentation**: Swagger / OpenAPI 3.0
+
+* **Framework:** NestJS
+* **Language:** TypeScript
+* **ORM:** Prisma
+* **Database:** PostgreSQL
+* **Authentication:** Passport JWT
+* **Password Hashing:** bcryptjs
+* **Validation:** class-validator + class-transformer
+* **API Documentation:** Swagger / OpenAPI
+* **Authorization:** JWT Authentication + Role-Based Access Control
 
 ---
 
-## 3. Architecture & Monorepo Structure
+## 3. Architecture & Project Structure
 
 ```text
 ai_university/
 │
-├── frontend/                     # Next.js App Router Frontend
+├── frontend/                         # Next.js Frontend
 │   ├── app/
-│   │   ├── (auth)/               # Authentication Pages (/login, /register)
-│   │   ├── (dashboard)/          # Dashboard Shell & Subpages
-│   │   │   ├── student/dashboard
-│   │   │   ├── faculty/dashboard
+│   │   ├── (auth)/
+│   │   │   ├── login/
+│   │   │   └── register/
+│   │   │
+│   │   ├── (dashboard)/
+│   │   │   ├── student/
+│   │   │   │   └── dashboard/
+│   │   │   │
+│   │   │   ├── faculty/
+│   │   │   │   └── dashboard/
+│   │   │   │
 │   │   │   ├── admin/
-│   │   │   │   ├── dashboard
-│   │   │   │   ├── departments
-│   │   │   │   ├── courses
-│   │   │   │   ├── subjects
-│   │   │   │   ├── students
-│   │   │   │   ├── faculty
-│   │   │   │   └── users
-│   │   │   └── profile
+│   │   │   │   ├── dashboard/
+│   │   │   │   ├── departments/
+│   │   │   │   ├── courses/
+│   │   │   │   ├── subjects/
+│   │   │   │   ├── students/
+│   │   │   │   ├── faculty/
+│   │   │   │   └── users/
+│   │   │   │
+│   │   │   └── profile/
+│   │   │
 │   │   ├── layout.tsx
-│   │   └── page.tsx              # Landing Hero
+│   │   └── page.tsx
+│   │
 │   ├── components/
-│   │   ├── ui/                   # Reusable Primitives (Button, Input, Select, Card, Modal, Table, Badge)
-│   │   ├── layout/               # Sidebar, TopNav, DashboardLayout
-│   │   └── shared/               # StatCard, EmptyState, LoadingSpinner, ErrorAlert, ConfirmModal
+│   │   ├── ui/
+│   │   ├── layout/
+│   │   └── shared/
+│   │
 │   ├── context/
-│   │   ├── AuthContext.tsx       # Auth provider, token storage, role-based routing
-│   │   └── ToastContext.tsx      # Global notification toast system
+│   │   ├── AuthContext.tsx
+│   │   └── ToastContext.tsx
+│   │
 │   ├── providers/
-│   │   └── QueryProvider.tsx     # TanStack React Query client provider
+│   │   └── QueryProvider.tsx
+│   │
 │   ├── lib/
-│   │   ├── api/                  # Centralized typed API clients
-│   │   │   ├── client.ts         # Axios instance with refresh interceptor
+│   │   ├── api/
+│   │   │   ├── client.ts
 │   │   │   ├── auth.ts
 │   │   │   ├── departments.ts
 │   │   │   ├── courses.ts
@@ -81,242 +102,613 @@ ai_university/
 │   │   │   ├── faculty.ts
 │   │   │   └── users.ts
 │   │   └── utils.ts
-│   ├── types/                    # Shared TypeScript interfaces
-│   └── package.json
+│   │
+│   ├── types/
+│   ├── public/
+│   ├── package.json
+│   └── next.config.ts
 │
-├── backend/                      # NestJS REST API Server
+├── backend/                          # NestJS Backend
 │   ├── src/
-│   │   ├── auth/                 # AuthModule, AuthService, AuthController, JwtStrategy
-│   │   ├── users/                # UsersModule, UsersService, UsersController
-│   │   ├── students/             # StudentsModule, StudentsService, StudentsController
-│   │   ├── faculty/              # FacultyModule, FacultyService, FacultyController
-│   │   ├── departments/          # DepartmentsModule, DepartmentsService, DepartmentsController
-│   │   ├── courses/              # CoursesModule, CoursesService, CoursesController
-│   │   ├── subjects/             # SubjectsModule, SubjectsService, SubjectsController
+│   │   ├── auth/
+│   │   ├── users/
+│   │   ├── students/
+│   │   ├── faculty/
+│   │   ├── departments/
+│   │   ├── courses/
+│   │   ├── subjects/
 │   │   ├── common/
-│   │   │   ├── decorators/       # @Roles(), @CurrentUser(), @Public()
-│   │   │   ├── guards/           # JwtAuthGuard, RolesGuard
-│   │   │   ├── filters/          # HttpExceptionFilter (uniform error envelope)
-│   │   │   ├── interceptors/     # TransformInterceptor (uniform success envelope)
-│   │   │   └── pipes/            # Global ValidationPipe
-│   │   ├── prisma/               # PrismaModule, PrismaService
+│   │   │   ├── decorators/
+│   │   │   ├── guards/
+│   │   │   ├── filters/
+│   │   │   └── interceptors/
+│   │   ├── prisma/
 │   │   ├── app.module.ts
-│   │   └── main.ts               # Swagger initialization, CORS, global middlewares
+│   │   └── main.ts
+│   │
 │   ├── prisma/
-│   │   ├── schema.prisma         # Relational schema
-│   │   └── seed.ts               # Database seed script
-│   ├── test/                     # Jest Unit & Integration test suites
-│   └── package.json
+│   │   ├── schema.prisma
+│   │   └── seed.ts
+│   │
+│   ├── test/
+│   ├── package.json
+│   └── tsconfig.json
 │
-├── docker-compose.yml            # PostgreSQL Docker configuration
 ├── .gitignore
-├── .env.example
-└── README.md
+├── README.md
+└── package.json
 ```
 
 ---
 
 ## 4. User Roles & Access Matrix
 
-| Feature | Student | Faculty | Admin |
-| :--- | :---: | :---: | :---: |
-| Self-Registration | Yes | Yes | No (Seeded/Admin-provisioned) |
-| Student Dashboard | Yes | No | No |
-| Faculty Dashboard | No | Yes | No |
-| Admin Dashboard | No | No | Yes |
-| View Enrolled Courses & Subjects | Yes | Yes | Yes |
-| Manage Departments (CRUD) | No | No | Yes |
-| Manage Courses (CRUD) | No | No | Yes |
-| Manage Subjects (CRUD) | No | No | Yes |
-| Manage Students (CRUD) | No | View Only | Yes |
-| Manage Faculty (CRUD) | No | No | Yes |
-| Manage Users & Roles (CRUD) | No | No | Yes |
+| Feature                 | Student | Faculty | Admin |
+| ----------------------- | :-----: | :-----: | :---: |
+| Self Registration       |   Yes   |   Yes   |   No  |
+| Student Dashboard       |   Yes   |    No   |   No  |
+| Faculty Dashboard       |    No   |   Yes   |   No  |
+| Admin Dashboard         |    No   |    No   |  Yes  |
+| View Courses & Subjects |   Yes   |   Yes   |  Yes  |
+| Manage Departments      |    No   |    No   |  Yes  |
+| Manage Courses          |    No   |    No   |  Yes  |
+| Manage Subjects         |    No   |    No   |  Yes  |
+| Manage Students         |    No   |   View  |  Yes  |
+| Manage Faculty          |    No   |    No   |  Yes  |
+| Manage Users & Roles    |    No   |    No   |  Yes  |
 
 ---
 
-## 5. Seeded Demo Accounts
+## 5. Authentication & Security
 
-The database seed provides ready-to-test accounts for every role:
+The platform uses JWT-based authentication.
 
-| Role | Email | Password | Identifier / Title |
-| :--- | :--- | :--- | :--- |
-| **Admin** | `admin@aiuniversity.edu` | `Admin@123456` | System Administrator |
-| **Faculty** | `alan.turing@aiuniversity.edu` | `Faculty@123456` | `FAC-CSE-001` (Senior Professor & Chair) |
-| **Faculty** | `ada.lovelace@aiuniversity.edu` | `Faculty@123456` | `FAC-AI-001` (Associate Professor & AI Lab Dir.) |
-| **Student** | `john.doe@aiuniversity.edu` | `Student@123456` | `STU-2026-001` (Semester 4, CSE) |
-| **Student** | `alice.smith@aiuniversity.edu` | `Student@123456` | `STU-2026-002` (Semester 6, AIDS) |
+### Authentication Flow
 
-*Note: The frontend `/login` page features a **Quick Demo Fill** section that fills these credentials with a single click.*
+```text
+User
+ │
+ ▼
+Next.js Frontend
+ │
+ │ Login
+ ▼
+NestJS Auth API
+ │
+ ├── Validate credentials
+ │
+ ├── Verify bcrypt password
+ │
+ ├── Generate access token
+ │
+ └── Generate refresh token
+ │
+ ▼
+Authenticated User
+```
+
+### Token Strategy
+
+* Access token: short-lived
+* Refresh token: long-lived
+* Refresh token rotation
+* Database-backed refresh-token revocation
+* JWT protected endpoints
+* Role-based authorization
+* Password hashing with `bcryptjs`
 
 ---
 
-## 6. Getting Started & Installation
+## 6. Database Architecture
+
+PostgreSQL is used as the primary database.
+
+Prisma ORM provides the database abstraction layer.
+
+### Core Models
+
+```text
+User
+ │
+ ├── Student
+ │
+ └── Faculty
+
+Department
+ │
+ ├── Courses
+ │
+ ├── Subjects
+ │
+ ├── Students
+ │
+ └── Faculty
+
+Course
+ │
+ └── Subjects
+```
+
+The Prisma schema maintains relational integrity through foreign keys, unique constraints, and relationship definitions.
+
+---
+
+## 7. Environment Configuration
+
+### Backend
+
+Create:
+
+```text
+backend/.env
+```
+
+Example:
+
+```env
+PORT=4000
+
+DATABASE_URL="postgresql://postgres:password@localhost:5432/ai_university?schema=public"
+
+JWT_ACCESS_SECRET="replace-with-a-strong-access-secret"
+JWT_REFRESH_SECRET="replace-with-a-different-refresh-secret"
+
+JWT_ACCESS_EXPIRES_IN="15m"
+JWT_REFRESH_EXPIRES_IN="7d"
+
+FRONTEND_URL="http://localhost:3000"
+```
+
+**Do not commit `backend/.env` to Git.**
+
+Use `.env.example` for safe configuration templates.
+
+### Frontend
+
+Create:
+
+```text
+frontend/.env.local
+```
+
+Example:
+
+```env
+NEXT_PUBLIC_API_URL="http://localhost:4000"
+```
+
+---
+
+## 8. Installation
 
 ### Prerequisites
-- **Node.js**: v20+ or v22+
-- **npm**: v10+ or v11+
-- **PostgreSQL**: A running instance (Local PostgreSQL or free online instance on [Render.com](https://render.com))
+
+Install:
+
+* Node.js 20+
+* npm 10+
+* PostgreSQL
+
+Verify:
+
+```powershell
+node --version
+npm --version
+```
+
+Verify PostgreSQL is available and running.
 
 ---
 
-### Step 1: Configure Environment Variables
+## 9. Backend Setup
 
-1. **Backend Configuration**:
-   Inside `backend/`, copy the example file:
-   ```bash
-   cp backend/.env.example backend/.env
-   ```
-   Set your PostgreSQL database connection URL:
-   ```env
-   PORT=4000
-   DATABASE_URL="postgresql://postgres:password@localhost:5432/ai_university?schema=public"
-   JWT_ACCESS_SECRET="ai_university_phase1_super_secure_access_token_secret_key_2026"
-   JWT_REFRESH_SECRET="ai_university_phase1_super_secure_refresh_token_secret_key_2026"
-   JWT_ACCESS_EXPIRES_IN="15m"
-   JWT_REFRESH_EXPIRES_IN="7d"
-   FRONTEND_URL="http://localhost:3000"
-   ```
-   *(For Render.com: paste the "External Database URL" provided in your Render dashboard into `DATABASE_URL`)*.
+Open PowerShell:
 
-2. **Frontend Configuration**:
-   Inside `frontend/`, copy the example file:
-   ```bash
-   cp frontend/.env.example frontend/.env.local
-   ```
-   Ensure the API URL points to the backend:
-   ```env
-   NEXT_PUBLIC_API_URL="http://localhost:4000"
-   ```
+```powershell
+cd D:\ai_university\backend
+```
 
----
+Install dependencies:
 
-### Step 2: Database Migration & Seeding
+```powershell
+npm install
+```
 
-Once your PostgreSQL database is reachable via `DATABASE_URL`:
+Generate Prisma Client:
 
-```bash
-cd backend
-
-# 1. Generate Prisma Client
+```powershell
 npm run prisma:generate
+```
 
-# 2. Push schema to PostgreSQL database
+Prepare the database:
+
+```powershell
 npm run prisma:push
+```
 
-# 3. Seed initial admin, departments, courses, subjects, faculty, and students
+Seed the database:
+
+```powershell
 npm run seed
 ```
 
----
+Start the backend:
 
-### Step 3: Run the Applications
-
-Open two terminal tabs:
-
-**Terminal 1 — Backend (NestJS)**:
-```bash
-cd backend
+```powershell
 npm run start:dev
 ```
-*Backend runs on: `http://localhost:4000`*  
-*Swagger Documentation: `http://localhost:4000/api/docs`*
 
-**Terminal 2 — Frontend (Next.js)**:
-```bash
-cd frontend
+Backend:
+
+```text
+http://localhost:4000
+```
+
+Swagger:
+
+```text
+http://localhost:4000/api/docs
+```
+
+---
+
+## 10. Frontend Setup
+
+Open another PowerShell terminal:
+
+```powershell
+cd D:\ai_university\frontend
+```
+
+Install dependencies:
+
+```powershell
+npm install
+```
+
+Start the frontend:
+
+```powershell
 npm run dev
 ```
-*Frontend runs on: `http://localhost:3000`*
 
----
+Frontend:
 
-## 7. Running Automated Tests
-
-The backend includes unit and integration tests for authentication, role authorization, departments, and courses:
-
-```bash
-cd backend
-npm test
+```text
+http://localhost:3000
 ```
 
-All test suites execute with zero external database dependencies via test mocks:
-- `src/auth/auth.service.spec.ts`
-- `src/departments/departments.service.spec.ts`
-- `src/courses/courses.service.spec.ts`
-- `src/common/guards/roles.guard.spec.ts`
+---
+
+## 11. Running the Application
+
+Both applications should be running:
+
+```text
+┌──────────────────────────┐
+│       Next.js            │
+│    localhost:3000        │
+└────────────┬─────────────┘
+             │
+             │ REST API
+             ▼
+┌──────────────────────────┐
+│       NestJS             │
+│    localhost:4000        │
+└────────────┬─────────────┘
+             │
+             │ Prisma
+             ▼
+┌──────────────────────────┐
+│       PostgreSQL         │
+└──────────────────────────┘
+```
 
 ---
 
-## 8. Swagger / OpenAPI Documentation
+## 12. Swagger / OpenAPI
 
-Explore and execute live REST requests directly through the interactive Swagger UI:
-- **URL**: `http://localhost:4000/api/docs`
-- **Authentication**: Click **Authorize** (top right) and enter your JWT access token obtained from `POST /auth/login` to test protected endpoints.
+Swagger is available at:
+
+```text
+http://localhost:4000/api/docs
+```
+
+Swagger provides interactive documentation for the backend REST API.
+
+### Authentication
+
+1. Register or log in.
+2. Obtain a JWT access token.
+3. Open Swagger.
+4. Click **Authorize**.
+5. Enter the JWT access token.
+6. Test protected endpoints.
 
 ---
 
-## 9. Standardized API Envelopes
-
-Every API endpoint complies with strict, predictable JSON envelopes:
+## 13. API Response Format
 
 ### Success Response
+
 ```json
 {
   "success": true,
   "message": "Departments fetched successfully",
-  "data": [
-    {
-      "id": "c1f7a29e-...",
-      "name": "Computer Science & Engineering",
-      "code": "CSE",
-      "description": "Department of Computer Science...",
-      "_count": { "courses": 2, "students": 1, "faculty": 1 }
-    }
-  ]
+  "data": []
 }
 ```
 
 ### Error Response
+
 ```json
 {
   "success": false,
-  "message": "Access denied: requires one of [ADMIN], current role is [STUDENT]",
+  "message": "Access denied",
   "error": "FORBIDDEN"
 }
 ```
 
 ---
 
-## 10. Future Architecture & Roadmap
+## 14. Automated Tests
 
-### Phase 2: University Operations
-- Attendance Tracking (daily session logging & reports)
-- Continuous Assessment & Assignments (student submission & faculty grading)
-- Examination Scheduling & Gradebook
-- Real-time Notifications & Departmental Announcements
-- Class Timetable Generator
+Run backend tests:
 
-### Phase 3: AI Intelligence Layer
-```text
-Next.js Frontend
-       │
-       ▼
-NestJS Core API
-       │ (REST / gRPC)
-       ▼
-Python FastAPI AI Service
-       │
-   ┌───┴───┐
-   ▼       ▼
-RAG       LLM
-(Chroma/Qdrant)  (GPT-4 / Claude / Gemini)
-   │       │
-   └───────┴──────► AI Course Tutor / Syllabus Q&A
-                    Automated Exam Question Generator
-                    Personalized Adaptive Quizzes
+```powershell
+cd D:\ai_university\backend
+npm test
+```
+
+Run tests in watch mode:
+
+```powershell
+npm run test:watch
+```
+
+Generate coverage:
+
+```powershell
+npm run test:cov
+```
+
+Run end-to-end tests:
+
+```powershell
+npm run test:e2e
 ```
 
 ---
 
-## 11. License
-This project is open-source and developed for the AI University Platform Foundation.
+## 15. Production Build Verification
+
+### Backend
+
+```powershell
+cd D:\ai_university\backend
+npm run build
+```
+
+### Frontend
+
+```powershell
+cd D:\ai_university\frontend
+npm run build
+```
+
+Both builds should complete without TypeScript or compilation errors before deployment.
+
+---
+
+## 16. Seeded Demo Accounts
+
+Development/demo accounts:
+
+| Role    | Email                           | Password         |
+| ------- | ------------------------------- | ---------------- |
+| Admin   | `admin@aiuniversity.edu`        | `Admin@123456`   |
+| Faculty | `alan.turing@aiuniversity.edu`  | `Faculty@123456` |
+| Faculty | `ada.lovelace@aiuniversity.edu` | `Faculty@123456` |
+| Student | `john.doe@aiuniversity.edu`     | `Student@123456` |
+| Student | `alice.smith@aiuniversity.edu`  | `Student@123456` |
+
+> These credentials are for development/testing only. Change or remove them before production deployment.
+
+---
+
+## 17. Phase 1 Status
+
+### Phase 1 — Foundation
+
+* [x] Next.js frontend
+* [x] NestJS backend
+* [x] TypeScript
+* [x] PostgreSQL
+* [x] Prisma ORM
+* [x] JWT authentication
+* [x] Refresh token handling
+* [x] Password hashing
+* [x] Role-based authorization
+* [x] Student role
+* [x] Faculty role
+* [x] Admin role
+* [x] User management
+* [x] Student management
+* [x] Faculty management
+* [x] Department management
+* [x] Course management
+* [x] Subject management
+* [x] Swagger documentation
+* [x] Global validation
+* [x] Global error handling
+* [x] API response transformation
+* [x] Frontend authentication flow
+* [x] Role-based dashboards
+* [x] Automated tests
+
+---
+
+## 18. Phase 2 — University Operations
+
+Planned Phase 2 functionality:
+
+* Attendance tracking
+* Daily attendance sessions
+* Attendance reports
+* Assignments
+* Student assignment submissions
+* Faculty grading
+* Continuous assessment
+* Examination scheduling
+* Gradebook
+* Class timetable
+* University announcements
+* Real-time notifications
+
+---
+
+## 19. Phase 3 — AI Intelligence Layer
+
+The future architecture will introduce a Python FastAPI AI service.
+
+```text
+┌──────────────────────┐
+│    Next.js Web App   │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│   NestJS Core API    │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ Python FastAPI AI    │
+│       Service        │
+└──────────┬───────────┘
+           │
+      ┌────┴────┐
+      ▼         ▼
+     RAG       LLM
+      │         │
+      └────┬────┘
+           ▼
+ ┌───────────────────────┐
+ │ AI University Features│
+ ├───────────────────────┤
+ │ Course Tutor          │
+ │ Syllabus Q&A          │
+ │ Question Generator    │
+ │ Adaptive Quizzes      │
+ │ AI Study Assistant    │
+ └───────────────────────┘
+```
+
+---
+
+## 20. Backend / Frontend Relationship
+
+The same **NestJS TypeScript backend** is designed to serve multiple clients.
+
+```text
+             ┌─────────────────┐
+             │   Web Browser   │
+             │   Next.js       │
+             └────────┬────────┘
+                      │
+                      │
+             ┌────────▼────────┐
+             │   NestJS API    │
+             │   TypeScript    │
+             └────────┬────────┘
+                      │
+              ┌───────┴────────┐
+              │                │
+              ▼                ▼
+        PostgreSQL         Future Mobile
+                            Application
+```
+
+The backend API can therefore be reused by the web application and future mobile applications.
+
+---
+
+## 21. Development Principles
+
+The project follows these principles:
+
+* TypeScript-first architecture
+* Modular NestJS backend
+* Component-based Next.js frontend
+* Strong database relationships
+* DTO-based validation
+* Role-based access control
+* Centralized API client
+* Consistent API responses
+* Secure authentication
+* Environment-based configuration
+* Testable backend services
+* Separation of frontend and backend responsibilities
+
+---
+
+## 22. Security Notes
+
+Never commit:
+
+```text
+.env
+.env.local
+```
+
+Never commit:
+
+* Production database passwords
+* JWT secrets
+* API keys
+* Private credentials
+* Production tokens
+
+Use:
+
+```text
+.env.example
+```
+
+for configuration templates.
+
+---
+
+## 23. Git Workflow
+
+Check repository status:
+
+```powershell
+git status
+```
+
+Add changes:
+
+```powershell
+git add .
+```
+
+Commit:
+
+```powershell
+git commit -m "your commit message"
+```
+
+Push:
+
+```powershell
+git push
+```
+
+---
+
+## 24. License
+
+This project is developed as the foundation of the **AI University Platform**.
+
+---
