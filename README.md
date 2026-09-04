@@ -320,6 +320,3 @@ RAG       LLM
 
 ## 11. License
 This project is open-source and developed for the AI University Platform Foundation.
-=======
-# ai_university_platform
->>>>>>> 8914c248d7ae7539c8ed550916be48526479cbb8
