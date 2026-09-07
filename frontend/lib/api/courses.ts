@@ -30,4 +30,10 @@ export const coursesApi = {
     const res = await apiClient.delete<ApiResponse<null>>(`/courses/${id}`);
     return res.data;
   },
+
+  remove: async (id: string) => {
+    const res = await apiClient.delete<ApiResponse<null>>(`/courses/${id}`);
+    return res.data;
+  },
 };
+

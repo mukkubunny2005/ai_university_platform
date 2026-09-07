@@ -28,6 +28,7 @@ export class CoursesController {
   @ApiOperation({ summary: 'List all courses with optional department filtering' })
   @ApiQuery({ name: 'departmentId', required: false, description: 'Filter courses by department UUID' })
   @ApiResponse({ status: 200, description: 'Courses list fetched' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async findAll(@Query('departmentId') departmentId?: string) {
     return this.coursesService.findAll(departmentId);
   }
@@ -35,6 +36,7 @@ export class CoursesController {
   @Get(':id')
   @ApiOperation({ summary: 'Get course details with subjects and department' })
   @ApiResponse({ status: 200, description: 'Course details fetched' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Course not found' })
   async findOne(@Param('id') id: string) {
     return this.coursesService.findOne(id);
@@ -44,7 +46,10 @@ export class CoursesController {
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Admin only: create a new course' })
   @ApiResponse({ status: 201, description: 'Course created' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden: Admins only' })
+  @ApiResponse({ status: 404, description: 'Department not found' })
   @ApiResponse({ status: 409, description: 'Course code already exists' })
   async create(@Body() dto: CreateCourseDto) {
     return this.coursesService.create(dto);
@@ -54,8 +59,11 @@ export class CoursesController {
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Admin only: update course details' })
   @ApiResponse({ status: 200, description: 'Course updated' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden: Admins only' })
-  @ApiResponse({ status: 404, description: 'Course not found' })
+  @ApiResponse({ status: 404, description: 'Course or department not found' })
+  @ApiResponse({ status: 409, description: 'Course code already in use' })
   async update(@Param('id') id: string, @Body() dto: UpdateCourseDto) {
     return this.coursesService.update(id, dto);
   }
@@ -64,9 +72,12 @@ export class CoursesController {
   @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Admin only: delete course' })
   @ApiResponse({ status: 200, description: 'Course deleted' })
-  @ApiResponse({ status: 400, description: 'Cannot delete course with associated subjects' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden: Admins only' })
+  @ApiResponse({ status: 404, description: 'Course not found' })
+  @ApiResponse({ status: 409, description: 'Cannot delete course with associated subjects' })
   async remove(@Param('id') id: string) {
     return this.coursesService.remove(id);
   }
 }
+

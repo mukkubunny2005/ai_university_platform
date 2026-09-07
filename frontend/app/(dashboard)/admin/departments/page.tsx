@@ -11,11 +11,10 @@ import { Input } from '../../../../components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../../../components/ui/Card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../../components/ui/Table';
 import { Modal } from '../../../../components/ui/Modal';
-import { ConfirmModal } from '../../../../components/shared/ConfirmModal';
 import { LoadingSpinner } from '../../../../components/shared/LoadingSpinner';
 import { EmptyState } from '../../../../components/shared/EmptyState';
 import { ErrorAlert } from '../../../../components/shared/ErrorAlert';
-import { Building2, Plus, Edit2, Trash2 } from 'lucide-react';
+import { Building2, Plus, Edit2, Trash2, AlertCircle, AlertTriangle } from 'lucide-react';
 
 export default function AdminDepartmentsPage() {
   const queryClient = useQueryClient();
@@ -24,6 +23,7 @@ export default function AdminDepartmentsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
   const [deletingDepartment, setDeletingDepartment] = useState<Department | null>(null);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
 
   // Form State
   const [name, setName] = useState('');
@@ -75,10 +75,12 @@ export default function AdminDepartmentsPage() {
       queryClient.invalidateQueries({ queryKey: ['departments'] });
       success('Department deleted successfully!');
       setDeletingDepartment(null);
+      setDeleteErrorMessage(null);
     },
     onError: (err: any) => {
-      toastError(err.response?.data?.message || 'Failed to delete department');
-      setDeletingDepartment(null);
+      const msg = err.response?.data?.message || 'Failed to delete department';
+      setDeleteErrorMessage(msg);
+      toastError(msg);
     },
   });
 
@@ -95,6 +97,11 @@ export default function AdminDepartmentsPage() {
     setName(dept.name);
     setCode(dept.code);
     setDescription(dept.description || '');
+  };
+
+  const openDeleteModal = (dept: Department) => {
+    setDeletingDepartment(dept);
+    setDeleteErrorMessage(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -184,9 +191,21 @@ export default function AdminDepartmentsPage() {
                       <TableCell className="text-xs text-slate-500 max-w-xs truncate">
                         {dept.description || '—'}
                       </TableCell>
-                      <TableCell>{dept._count?.courses || 0}</TableCell>
-                      <TableCell>{dept._count?.students || 0}</TableCell>
-                      <TableCell>{dept._count?.faculty || 0}</TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                          {dept._count?.courses || 0} Courses
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                          {dept._count?.students || 0} Students
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+                          {dept._count?.faculty || 0} Faculty
+                        </span>
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <Button
@@ -194,14 +213,16 @@ export default function AdminDepartmentsPage() {
                             size="sm"
                             onClick={() => openEditModal(dept)}
                             className="p-1.5 h-auto text-slate-500 hover:text-indigo-600"
+                            title="Edit Department"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setDeletingDepartment(dept)}
+                            onClick={() => openDeleteModal(dept)}
                             className="p-1.5 h-auto text-slate-500 hover:text-rose-600"
+                            title="Delete Department"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
@@ -226,7 +247,7 @@ export default function AdminDepartmentsPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             label="Department Name"
-            placeholder="e.g. Computer Science & Engineering"
+            placeholder="e.g. Computer Science and Engineering"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -267,18 +288,64 @@ export default function AdminDepartmentsPage() {
       </Modal>
 
       {/* Delete Confirmation Modal */}
-      <ConfirmModal
+      <Modal
         isOpen={!!deletingDepartment}
-        onClose={() => setDeletingDepartment(null)}
-        onConfirm={() => {
-          if (deletingDepartment) {
-            deleteMutation.mutate(deletingDepartment.id);
-          }
+        onClose={() => {
+          setDeletingDepartment(null);
+          setDeleteErrorMessage(null);
         }}
         title="Delete Department"
-        message={`Are you sure you want to delete "${deletingDepartment?.name}" (${deletingDepartment?.code})? This action cannot be undone.`}
-        isLoading={deleteMutation.isPending}
-      />
+        maxWidth="sm"
+      >
+        <div className="flex flex-col gap-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400 shrink-0">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                Are you sure you want to delete this department?
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                You are about to delete &quot;{deletingDepartment?.name}&quot; ({deletingDepartment?.code}). This action cannot be undone.
+              </p>
+            </div>
+          </div>
+
+          {deleteErrorMessage && (
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-200 text-xs flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+              <p className="font-medium leading-relaxed">{deleteErrorMessage}</p>
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-3 mt-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setDeletingDepartment(null);
+                setDeleteErrorMessage(null);
+              }}
+              disabled={deleteMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => {
+                if (deletingDepartment) {
+                  deleteMutation.mutate(deletingDepartment.id);
+                }
+              }}
+              isLoading={deleteMutation.isPending}
+            >
+              Delete Department
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </DashboardLayout>
   );
 }

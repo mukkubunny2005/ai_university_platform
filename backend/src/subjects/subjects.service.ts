@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -90,7 +89,7 @@ export class SubjectsService {
       where: { id: dto.courseId },
     });
     if (!course) {
-      throw new BadRequestException('Course does not exist');
+      throw new NotFoundException(`Course with ID ${dto.courseId} not found`);
     }
 
     if (dto.facultyId) {
@@ -98,7 +97,7 @@ export class SubjectsService {
         where: { id: dto.facultyId },
       });
       if (!faculty) {
-        throw new BadRequestException('Assigned faculty does not exist');
+        throw new NotFoundException(`Faculty with ID ${dto.facultyId} not found`);
       }
     }
 
@@ -106,7 +105,7 @@ export class SubjectsService {
       data: {
         name: dto.name.trim(),
         code,
-        credits: dto.credits,
+        credits: dto.credits ?? 3,
         courseId: dto.courseId,
         facultyId: dto.facultyId || null,
       },
@@ -133,10 +132,10 @@ export class SubjectsService {
     }
 
     const data: Record<string, any> = {};
-    if (dto.name) data.name = dto.name.trim();
+    if (dto.name !== undefined) data.name = dto.name.trim();
     if (dto.credits !== undefined) data.credits = dto.credits;
 
-    if (dto.code) {
+    if (dto.code !== undefined) {
       const code = dto.code.trim().toUpperCase();
       if (code !== subject.code) {
         const existing = await this.prisma.subject.findUnique({ where: { code } });
@@ -147,12 +146,12 @@ export class SubjectsService {
       }
     }
 
-    if (dto.courseId) {
+    if (dto.courseId !== undefined) {
       const course = await this.prisma.course.findUnique({
         where: { id: dto.courseId },
       });
       if (!course) {
-        throw new BadRequestException('Course does not exist');
+        throw new NotFoundException(`Course with ID ${dto.courseId} not found`);
       }
       data.courseId = dto.courseId;
     }
@@ -163,7 +162,7 @@ export class SubjectsService {
           where: { id: dto.facultyId },
         });
         if (!faculty) {
-          throw new BadRequestException('Faculty does not exist');
+          throw new NotFoundException(`Faculty with ID ${dto.facultyId} not found`);
         }
         data.facultyId = dto.facultyId;
       } else {
@@ -204,3 +203,4 @@ export class SubjectsService {
     };
   }
 }
+

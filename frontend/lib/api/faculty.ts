@@ -29,6 +29,7 @@ export const facultyApi = {
     id: string,
     data: {
       name?: string;
+      email?: string;
       facultyId?: string;
       departmentId?: string;
       designation?: string;
@@ -42,4 +43,10 @@ export const facultyApi = {
     const res = await apiClient.delete<ApiResponse<null>>(`/faculty/${id}`);
     return res.data;
   },
+
+  remove: async (id: string) => {
+    const res = await apiClient.delete<ApiResponse<null>>(`/faculty/${id}`);
+    return res.data;
+  },
 };
+

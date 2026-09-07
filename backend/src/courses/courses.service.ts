@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -82,7 +81,7 @@ export class CoursesService {
       where: { id: dto.departmentId },
     });
     if (!department) {
-      throw new BadRequestException('Department does not exist');
+      throw new NotFoundException(`Department with ID ${dto.departmentId} not found`);
     }
 
     const course = await this.prisma.course.create({
@@ -110,10 +109,10 @@ export class CoursesService {
     }
 
     const data: Record<string, any> = {};
-    if (dto.name) data.name = dto.name.trim();
+    if (dto.name !== undefined) data.name = dto.name.trim();
     if (dto.description !== undefined) data.description = dto.description?.trim();
 
-    if (dto.code) {
+    if (dto.code !== undefined) {
       const code = dto.code.trim().toUpperCase();
       if (code !== course.code) {
         const existing = await this.prisma.course.findUnique({ where: { code } });
@@ -124,12 +123,12 @@ export class CoursesService {
       }
     }
 
-    if (dto.departmentId) {
+    if (dto.departmentId !== undefined) {
       const department = await this.prisma.department.findUnique({
         where: { id: dto.departmentId },
       });
       if (!department) {
-        throw new BadRequestException('Specified department does not exist');
+        throw new NotFoundException(`Department with ID ${dto.departmentId} not found`);
       }
       data.departmentId = dto.departmentId;
     }
@@ -163,8 +162,8 @@ export class CoursesService {
     }
 
     if (course._count.subjects > 0) {
-      throw new BadRequestException(
-        'Cannot delete course with associated subjects. Remove or reassign subjects first.',
+      throw new ConflictException(
+        'Cannot delete course because subjects are associated with it. Reassign or remove subjects first.',
       );
     }
 
@@ -176,3 +175,4 @@ export class CoursesService {
     };
   }
 }
+

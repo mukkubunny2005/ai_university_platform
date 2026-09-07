@@ -19,9 +19,10 @@ export const subjectsApi = {
   create: async (data: {
     name: string;
     code: string;
-    credits: number;
+    credits?: number;
+    description?: string;
     courseId: string;
-    facultyId?: string;
+    facultyId?: string | null;
   }) => {
     const res = await apiClient.post<ApiResponse<Subject>>('/subjects', data);
     return res.data.data;
@@ -33,6 +34,7 @@ export const subjectsApi = {
       name?: string;
       code?: string;
       credits?: number;
+      description?: string;
       courseId?: string;
       facultyId?: string | null;
     },
@@ -45,4 +47,10 @@ export const subjectsApi = {
     const res = await apiClient.delete<ApiResponse<null>>(`/subjects/${id}`);
     return res.data;
   },
+
+  remove: async (id: string) => {
+    const res = await apiClient.delete<ApiResponse<null>>(`/subjects/${id}`);
+    return res.data;
+  },
 };
+

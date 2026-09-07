@@ -1,57 +1,48 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateSubjectDto {
-  @ApiProperty({ example: 'Data Structures and Algorithms' })
-  @IsString()
-  @IsNotEmpty()
+  @ApiProperty({ example: 'Data Structures and Algorithms', description: 'Full title of the subject' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsString({ message: 'Subject name must be a string' })
+  @IsNotEmpty({ message: 'Subject name is required' })
   name: string;
 
-  @ApiProperty({ example: 'CS201' })
-  @IsString()
-  @IsNotEmpty()
+  @ApiProperty({ example: 'CS201', description: 'Unique subject code' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toUpperCase() : value))
+  @IsString({ message: 'Subject code must be a string' })
+  @IsNotEmpty({ message: 'Subject code is required' })
   code: string;
 
-  @ApiProperty({ example: 4, description: 'Subject credit value (min 1)' })
-  @IsInt()
-  @Min(1)
-  credits: number;
-
-  @ApiProperty({ description: 'Course UUID' })
-  @IsString()
-  @IsNotEmpty()
-  courseId: string;
-
-  @ApiPropertyOptional({ description: 'Faculty UUID (optional)' })
+  @ApiPropertyOptional({ example: 4, description: 'Academic credit value (defaults to 3, min 1)' })
   @IsOptional()
-  @IsString()
-  facultyId?: string;
-}
-
-export class UpdateSubjectDto {
-  @ApiPropertyOptional({ example: 'Data Structures and Algorithms' })
-  @IsOptional()
-  @IsString()
-  name?: string;
-
-  @ApiPropertyOptional({ example: 'CS201' })
-  @IsOptional()
-  @IsString()
-  code?: string;
-
-  @ApiPropertyOptional({ example: 4 })
-  @IsOptional()
-  @IsInt()
-  @Min(1)
+  @IsInt({ message: 'Credits must be an integer' })
+  @Min(1, { message: 'Credits must be at least 1' })
   credits?: number;
 
-  @ApiPropertyOptional({ description: 'Course UUID' })
+  @ApiPropertyOptional({ example: 'Fundamental algorithms and complexity analysis', description: 'Subject curriculum overview' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsOptional()
-  @IsString()
-  courseId?: string;
+  @IsString({ message: 'Description must be a string' })
+  description?: string;
 
-  @ApiPropertyOptional({ description: 'Faculty UUID (pass null or valid ID)' })
+  @ApiProperty({ example: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d', description: 'UUID of the parent course' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsString({ message: 'Course ID must be a string' })
+  @IsNotEmpty({ message: 'Course ID is required' })
+  courseId: string;
+
+  @ApiPropertyOptional({ example: 'f1e2d3c4-b5a6-7890-1234-56789abcdef0', description: 'UUID of assigned faculty (optional)' })
+  @Transform(({ value }) => (typeof value === 'string' ? (value.trim() || undefined) : value))
   @IsOptional()
-  @IsString()
+  @IsString({ message: 'Faculty ID must be a string' })
   facultyId?: string | null;
 }
+
+export class UpdateSubjectDto extends PartialType(CreateSubjectDto) {
+  @ApiPropertyOptional({ description: 'Faculty UUID (pass null or empty string to unassign faculty)' })
+  @IsOptional()
+  facultyId?: string | null;
+}
+

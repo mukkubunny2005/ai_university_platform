@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -84,25 +83,28 @@ export class FacultyService {
   }
 
   async create(dto: CreateFacultyDto) {
+    const normalizedEmail = dto.email.toLowerCase().trim();
+    const normalizedFacultyId = dto.facultyId.trim().toUpperCase();
+
     const existingUser = await this.prisma.user.findUnique({
-      where: { email: dto.email.toLowerCase().trim() },
+      where: { email: normalizedEmail },
     });
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
 
     const existingFacultyId = await this.prisma.faculty.findUnique({
-      where: { facultyId: dto.facultyId.trim() },
+      where: { facultyId: normalizedFacultyId },
     });
     if (existingFacultyId) {
-      throw new ConflictException(`Faculty ID "${dto.facultyId}" is already assigned`);
+      throw new ConflictException(`Faculty ID "${normalizedFacultyId}" is already assigned`);
     }
 
     const dept = await this.prisma.department.findUnique({
       where: { id: dto.departmentId },
     });
     if (!dept) {
-      throw new BadRequestException('Department does not exist');
+      throw new NotFoundException(`Department with ID ${dto.departmentId} not found`);
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
@@ -111,7 +113,7 @@ export class FacultyService {
       const user = await tx.user.create({
         data: {
           name: dto.name.trim(),
-          email: dto.email.toLowerCase().trim(),
+          email: normalizedEmail,
           passwordHash,
           role: Role.FACULTY,
         },
@@ -120,13 +122,13 @@ export class FacultyService {
       return tx.faculty.create({
         data: {
           userId: user.id,
-          facultyId: dto.facultyId.trim(),
+          facultyId: normalizedFacultyId,
           departmentId: dto.departmentId,
           designation: dto.designation.trim(),
         },
         include: {
           user: {
-            select: { id: true, name: true, email: true, role: true },
+            select: { id: true, name: true, email: true, role: true, createdAt: true },
           },
           department: true,
         },
@@ -148,42 +150,64 @@ export class FacultyService {
       throw new NotFoundException(`Faculty member with ID ${id} not found`);
     }
 
-    if (dto.facultyId && dto.facultyId !== faculty.facultyId) {
-      const existing = await this.prisma.faculty.findUnique({
-        where: { facultyId: dto.facultyId.trim() },
-      });
-      if (existing) {
-        throw new ConflictException(`Faculty ID "${dto.facultyId}" is already assigned`);
+    const userUpdates: Record<string, any> = {};
+    if (dto.name !== undefined) userUpdates.name = dto.name.trim();
+
+    if (dto.email !== undefined) {
+      const normalizedEmail = dto.email.toLowerCase().trim();
+      if (normalizedEmail !== faculty.user.email) {
+        const existingUser = await this.prisma.user.findUnique({
+          where: { email: normalizedEmail },
+        });
+        if (existingUser) {
+          throw new ConflictException('User with this email already exists');
+        }
+        userUpdates.email = normalizedEmail;
       }
     }
 
-    if (dto.departmentId) {
+    const facultyUpdates: Record<string, any> = {};
+    if (dto.facultyId !== undefined) {
+      const normalizedFacultyId = dto.facultyId.trim().toUpperCase();
+      if (normalizedFacultyId !== faculty.facultyId) {
+        const existingFaculty = await this.prisma.faculty.findUnique({
+          where: { facultyId: normalizedFacultyId },
+        });
+        if (existingFaculty) {
+          throw new ConflictException(`Faculty ID "${normalizedFacultyId}" is already assigned`);
+        }
+        facultyUpdates.facultyId = normalizedFacultyId;
+      }
+    }
+
+    if (dto.departmentId !== undefined) {
       const dept = await this.prisma.department.findUnique({
         where: { id: dto.departmentId },
       });
       if (!dept) {
-        throw new BadRequestException('Department does not exist');
+        throw new NotFoundException(`Department with ID ${dto.departmentId} not found`);
       }
+      facultyUpdates.departmentId = dto.departmentId;
+    }
+
+    if (dto.designation !== undefined) {
+      facultyUpdates.designation = dto.designation.trim();
     }
 
     const updated = await this.prisma.$transaction(async (tx) => {
-      if (dto.name) {
+      if (Object.keys(userUpdates).length > 0) {
         await tx.user.update({
           where: { id: faculty.userId },
-          data: { name: dto.name.trim() },
+          data: userUpdates,
         });
       }
 
       return tx.faculty.update({
         where: { id },
-        data: {
-          facultyId: dto.facultyId ? dto.facultyId.trim() : undefined,
-          departmentId: dto.departmentId || undefined,
-          designation: dto.designation ? dto.designation.trim() : undefined,
-        },
+        data: facultyUpdates,
         include: {
           user: {
-            select: { id: true, name: true, email: true, role: true },
+            select: { id: true, name: true, email: true, role: true, createdAt: true },
           },
           department: true,
         },
@@ -202,13 +226,16 @@ export class FacultyService {
       throw new NotFoundException(`Faculty member with ID ${id} not found`);
     }
 
-    // Unassign subjects before deleting
-    await this.prisma.subject.updateMany({
-      where: { facultyId: id },
-      data: { facultyId: null },
-    });
+    await this.prisma.$transaction(async (tx) => {
+      // Unassign subjects before deleting
+      await tx.subject.updateMany({
+        where: { facultyId: id },
+        data: { facultyId: null },
+      });
 
-    await this.prisma.user.delete({ where: { id: faculty.userId } });
+      // Deleting user automatically cascades to Faculty model
+      await tx.user.delete({ where: { id: faculty.userId } });
+    });
 
     return {
       message: 'Faculty deleted successfully',
@@ -216,3 +243,4 @@ export class FacultyService {
     };
   }
 }
+
