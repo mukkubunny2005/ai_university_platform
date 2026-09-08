@@ -29,6 +29,7 @@ export const studentsApi = {
     id: string,
     data: {
       name?: string;
+      email?: string;
       studentId?: string;
       departmentId?: string;
       semester?: number;
@@ -41,5 +42,9 @@ export const studentsApi = {
   delete: async (id: string) => {
     const res = await apiClient.delete<ApiResponse<null>>(`/students/${id}`);
     return res.data;
+  },
+
+  remove: async (id: string) => {
+    return studentsApi.delete(id);
   },
 };

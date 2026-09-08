@@ -46,7 +46,63 @@ async function main() {
     },
   });
 
-  console.log('Created 3 Departments: CSE, AIDS, ECE');
+  const itDept = await prisma.department.create({
+    data: {
+      name: 'Information Technology',
+      code: 'IT',
+      description: 'Department specializing in enterprise software development, database systems, cybersecurity, networking, and cloud computing.',
+    },
+  });
+
+  const eeeDept = await prisma.department.create({
+    data: {
+      name: 'Electrical & Electronics Engineering',
+      code: 'EEE',
+      description: 'Department covering electrical power systems, smart grids, control systems, electric vehicles, renewable energy, and power electronics.',
+    },
+  });
+
+  const mechDept = await prisma.department.create({
+    data: {
+      name: 'Mechanical Engineering',
+      code: 'MECH',
+      description: 'Department specializing in thermodynamics, fluid dynamics, robotics, mechanical design, CAD/CAM, and advanced manufacturing technologies.',
+    },
+  });
+
+  const civilDept = await prisma.department.create({
+    data: {
+      name: 'Civil Engineering',
+      code: 'CIVIL',
+      description: 'Department emphasizing structural mechanics, environmental engineering, geotechnical analysis, transportation systems, and urban infrastructure.',
+    },
+  });
+
+  const biotechDept = await prisma.department.create({
+    data: {
+      name: 'Biotechnology Engineering',
+      code: 'BIOTECH',
+      description: 'Department focused on genetic engineering, molecular biology, bioinformatics, bioprocessing, and biomedical innovation.',
+    },
+  });
+
+  const chemDept = await prisma.department.create({
+    data: {
+      name: 'Chemical Engineering',
+      code: 'CHEM',
+      description: 'Department focusing on chemical reaction engineering, process optimization, materials synthesis, separation techniques, and polymers.',
+    },
+  });
+
+  const aeroDept = await prisma.department.create({
+    data: {
+      name: 'Aerospace Engineering',
+      code: 'AERO',
+      description: 'Department exploring aerodynamics, propulsion systems, flight mechanics, orbital dynamics, and aerospace vehicle structures.',
+    },
+  });
+
+  console.log('Created 10 Academic Branches/Departments: CSE, AIDS, IT, ECE, EEE, MECH, CIVIL, BIOTECH, CHEM, AERO');
 
   // 2. Create Admin User
   const admin = await prisma.user.create({

@@ -1,6 +1,6 @@
 import {
-  BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -46,7 +46,7 @@ export class StudentsService {
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string, currentUser?: { id: string; role: Role }) {
     const student = await this.prisma.student.findUnique({
       where: { id },
       include: {
@@ -83,32 +83,40 @@ export class StudentsService {
       throw new NotFoundException(`Student with ID ${id} not found`);
     }
 
+    // IDOR protection: A student can only view their own record
+    if (currentUser && currentUser.role === Role.STUDENT && student.userId !== currentUser.id) {
+      throw new ForbiddenException("You are not authorized to view another student's profile");
+    }
+
     return {
-      message: 'Student retrieved successfully',
+      message: 'Student details retrieved successfully',
       data: student,
     };
   }
 
   async create(dto: CreateStudentDto) {
+    const normalizedEmail = dto.email.toLowerCase().trim();
+    const normalizedStudentId = dto.studentId.trim().toUpperCase();
+
     const existingUser = await this.prisma.user.findUnique({
-      where: { email: dto.email.toLowerCase().trim() },
+      where: { email: normalizedEmail },
     });
     if (existingUser) {
       throw new ConflictException('User with this email already exists');
     }
 
     const existingStudentId = await this.prisma.student.findUnique({
-      where: { studentId: dto.studentId.trim() },
+      where: { studentId: normalizedStudentId },
     });
     if (existingStudentId) {
-      throw new ConflictException(`Student ID "${dto.studentId}" is already assigned`);
+      throw new ConflictException(`Student ID "${normalizedStudentId}" is already assigned`);
     }
 
     const dept = await this.prisma.department.findUnique({
       where: { id: dto.departmentId },
     });
     if (!dept) {
-      throw new BadRequestException('Department does not exist');
+      throw new NotFoundException(`Department with ID ${dto.departmentId} not found`);
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
@@ -117,7 +125,7 @@ export class StudentsService {
       const user = await tx.user.create({
         data: {
           name: dto.name.trim(),
-          email: dto.email.toLowerCase().trim(),
+          email: normalizedEmail,
           passwordHash,
           role: Role.STUDENT,
         },
@@ -126,13 +134,13 @@ export class StudentsService {
       return tx.student.create({
         data: {
           userId: user.id,
-          studentId: dto.studentId.trim(),
+          studentId: normalizedStudentId,
           departmentId: dto.departmentId,
           semester: dto.semester,
         },
         include: {
           user: {
-            select: { id: true, name: true, email: true, role: true },
+            select: { id: true, name: true, email: true, role: true, createdAt: true },
           },
           department: true,
         },
@@ -154,42 +162,64 @@ export class StudentsService {
       throw new NotFoundException(`Student with ID ${id} not found`);
     }
 
-    if (dto.studentId && dto.studentId !== student.studentId) {
-      const existing = await this.prisma.student.findUnique({
-        where: { studentId: dto.studentId.trim() },
-      });
-      if (existing) {
-        throw new ConflictException(`Student ID "${dto.studentId}" is already assigned`);
+    const userUpdates: Record<string, any> = {};
+    if (dto.name !== undefined) userUpdates.name = dto.name.trim();
+
+    if (dto.email !== undefined) {
+      const normalizedEmail = dto.email.toLowerCase().trim();
+      if (normalizedEmail !== student.user.email) {
+        const existingUser = await this.prisma.user.findUnique({
+          where: { email: normalizedEmail },
+        });
+        if (existingUser) {
+          throw new ConflictException('User with this email already exists');
+        }
+        userUpdates.email = normalizedEmail;
       }
     }
 
-    if (dto.departmentId) {
+    const studentUpdates: Record<string, any> = {};
+    if (dto.studentId !== undefined) {
+      const normalizedStudentId = dto.studentId.trim().toUpperCase();
+      if (normalizedStudentId !== student.studentId) {
+        const existingStudent = await this.prisma.student.findUnique({
+          where: { studentId: normalizedStudentId },
+        });
+        if (existingStudent) {
+          throw new ConflictException(`Student ID "${normalizedStudentId}" is already assigned`);
+        }
+        studentUpdates.studentId = normalizedStudentId;
+      }
+    }
+
+    if (dto.departmentId !== undefined) {
       const dept = await this.prisma.department.findUnique({
         where: { id: dto.departmentId },
       });
       if (!dept) {
-        throw new BadRequestException('Department does not exist');
+        throw new NotFoundException(`Department with ID ${dto.departmentId} not found`);
       }
+      studentUpdates.departmentId = dto.departmentId;
+    }
+
+    if (dto.semester !== undefined) {
+      studentUpdates.semester = dto.semester;
     }
 
     const updated = await this.prisma.$transaction(async (tx) => {
-      if (dto.name) {
+      if (Object.keys(userUpdates).length > 0) {
         await tx.user.update({
           where: { id: student.userId },
-          data: { name: dto.name.trim() },
+          data: userUpdates,
         });
       }
 
       return tx.student.update({
         where: { id },
-        data: {
-          studentId: dto.studentId ? dto.studentId.trim() : undefined,
-          departmentId: dto.departmentId || undefined,
-          semester: dto.semester !== undefined ? dto.semester : undefined,
-        },
+        data: studentUpdates,
         include: {
           user: {
-            select: { id: true, name: true, email: true, role: true },
+            select: { id: true, name: true, email: true, role: true, createdAt: true },
           },
           department: true,
         },
@@ -208,7 +238,7 @@ export class StudentsService {
       throw new NotFoundException(`Student with ID ${id} not found`);
     }
 
-    // Cascade delete user
+    // Cascade delete: deleting user automatically cascades to Student model
     await this.prisma.user.delete({ where: { id: student.userId } });
 
     return {
