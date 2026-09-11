@@ -60,20 +60,26 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!departmentId || !departmentId.trim()) {
+      setErrorMessage('Please select an academic department.');
+      toastError('Please select an academic department.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       await register({
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim(),
         password,
         confirmPassword,
         role,
-        departmentId: departmentId || undefined,
-        studentId: role === 'STUDENT' ? studentId || undefined : undefined,
+        departmentId: departmentId.trim(),
+        studentId: role === 'STUDENT' ? (studentId.trim() || undefined) : undefined,
         semester: role === 'STUDENT' ? Number(semester) : undefined,
-        facultyId: role === 'FACULTY' ? facultyId || undefined : undefined,
-        designation: role === 'FACULTY' ? designation : undefined,
+        facultyId: role === 'FACULTY' ? (facultyId.trim() || undefined) : undefined,
+        designation: role === 'FACULTY' ? designation.trim() : undefined,
       });
 
       success(`Account created successfully as ${role}!`);
@@ -174,18 +180,20 @@ export default function RegisterPage() {
               </div>
 
               {/* Department */}
-              {departments.length > 0 && (
-                <Select
-                  label="Academic Department"
-                  value={departmentId}
-                  onChange={(e) => setDepartmentId(e.target.value)}
-                  options={departments.map((d) => ({
-                    label: `${d.name} (${d.code})`,
-                    value: d.id,
-                  }))}
-                  required
-                />
-              )}
+              <Select
+                label="Academic Department"
+                value={departmentId}
+                onChange={(e) => setDepartmentId(e.target.value)}
+                options={
+                  departments.length > 0
+                    ? departments.map((department) => ({
+                        label: `${department.name} (${department.code})`,
+                        value: department.id,
+                      }))
+                    : [{ label: 'Loading departments...', value: '' }]
+                }
+                required
+              />
 
               {/* Dynamic Role Fields */}
               {role === 'STUDENT' ? (

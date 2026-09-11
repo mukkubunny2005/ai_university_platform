@@ -118,7 +118,7 @@ export interface RegisterPayload {
   password: string;
   confirmPassword: string;
   role: 'STUDENT' | 'FACULTY';
-  departmentId?: string;
+  departmentId: string;
   studentId?: string;
   semester?: number;
   facultyId?: string;
