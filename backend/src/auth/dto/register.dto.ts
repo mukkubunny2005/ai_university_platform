@@ -8,6 +8,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUUID,
   Min,
   MinLength,
 } from 'class-validator';
@@ -54,10 +55,13 @@ export class RegisterDto {
   @IsString()
   facultyId?: string;
 
-  @ApiPropertyOptional({ description: 'Department UUID ID' })
-  @IsOptional()
-  @IsString()
-  departmentId?: string;
+  @ApiProperty({
+    example: 'c14e81e4-07fc-478e-8747-c0127a42a8bc',
+    description: 'Academic Department UUID',
+  })
+  @IsNotEmpty({ message: 'Please select an academic department' })
+  @IsUUID(undefined, { message: 'departmentId must be a valid Department UUID' })
+  departmentId: string;
 
   @ApiPropertyOptional({ example: 1, description: 'Current semester (for students)' })
   @IsOptional()

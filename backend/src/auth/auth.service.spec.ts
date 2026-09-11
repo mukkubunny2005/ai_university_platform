@@ -25,9 +25,11 @@ describe('AuthService', () => {
     },
     student: {
       create: jest.fn(),
+      findUnique: jest.fn(),
     },
     faculty: {
       create: jest.fn(),
+      findUnique: jest.fn(),
     },
     department: {
       findFirst: jest.fn(),
@@ -76,6 +78,7 @@ describe('AuthService', () => {
           password: 'Password1',
           confirmPassword: 'Password2',
           role: Role.STUDENT,
+          departmentId: 'dept-1',
         }),
       ).rejects.toThrow(BadRequestException);
     });
@@ -88,6 +91,7 @@ describe('AuthService', () => {
           password: 'Password1',
           confirmPassword: 'Password1',
           role: Role.ADMIN,
+          departmentId: 'dept-1',
         }),
       ).rejects.toThrow(ForbiddenException);
     });
@@ -102,8 +106,40 @@ describe('AuthService', () => {
           password: 'Password1',
           confirmPassword: 'Password1',
           role: Role.STUDENT,
+          departmentId: 'dept-1',
         }),
       ).rejects.toThrow(ConflictException);
+    });
+
+    it('should reject registration if departmentId is missing', async () => {
+      mockPrisma.user.findUnique.mockResolvedValueOnce(null);
+
+      await expect(
+        service.register({
+          name: 'John Doe',
+          email: 'new@test.edu',
+          password: 'Password1',
+          confirmPassword: 'Password1',
+          role: Role.STUDENT,
+          departmentId: '' as any,
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject registration if department does not exist', async () => {
+      mockPrisma.user.findUnique.mockResolvedValueOnce(null);
+      mockPrisma.department.findUnique.mockResolvedValueOnce(null);
+
+      await expect(
+        service.register({
+          name: 'John Doe',
+          email: 'new@test.edu',
+          password: 'Password1',
+          confirmPassword: 'Password1',
+          role: Role.STUDENT,
+          departmentId: 'non-existent-dept-uuid',
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should successfully register a student', async () => {
@@ -119,7 +155,14 @@ describe('AuthService', () => {
       mockPrisma.$transaction.mockImplementation(async (callback) => {
         return callback({
           user: { create: jest.fn().mockResolvedValue(mockCreatedUser) },
-          student: { create: jest.fn().mockResolvedValue({ id: 'stu-1' }) },
+          student: {
+            create: jest.fn().mockResolvedValue({ id: 'stu-1' }),
+            findUnique: jest.fn().mockResolvedValue(null),
+          },
+          faculty: {
+            create: jest.fn().mockResolvedValue({ id: 'fac-1' }),
+            findUnique: jest.fn().mockResolvedValue(null),
+          },
         });
       });
 

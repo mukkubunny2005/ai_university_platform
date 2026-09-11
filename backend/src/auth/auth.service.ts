@@ -88,33 +88,49 @@ export class AuthService {
       throw new ForbiddenException('Admin accounts cannot be created via public registration');
     }
 
+    const normalizedEmail = dto.email.toLowerCase().trim();
+
     const existingUser = await this.prisma.user.findUnique({
-      where: { email: dto.email.toLowerCase().trim() },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
       throw new ConflictException('A user with this email address already exists');
     }
 
-    // Default department if not supplied
-    let departmentId = dto.departmentId;
-    if (!departmentId) {
-      const defaultDept = await this.prisma.department.findFirst();
-      if (defaultDept) {
-        departmentId = defaultDept.id;
+    if (dto.role === Role.STUDENT && dto.studentId) {
+      const normalizedStudentId = dto.studentId.trim().toUpperCase();
+      const existingStudent = await this.prisma.student.findUnique({
+        where: { studentId: normalizedStudentId },
+      });
+      if (existingStudent) {
+        throw new ConflictException(`Student ID "${normalizedStudentId}" is already assigned`);
       }
     }
 
-    if (departmentId) {
-      const deptExists = await this.prisma.department.findUnique({
-        where: { id: departmentId },
+    if (dto.role === Role.FACULTY && dto.facultyId) {
+      const normalizedFacultyId = dto.facultyId.trim().toUpperCase();
+      const existingFaculty = await this.prisma.faculty.findUnique({
+        where: { facultyId: normalizedFacultyId },
       });
-      if (!deptExists) {
-        throw new BadRequestException('Specified department does not exist');
+      if (existingFaculty) {
+        throw new ConflictException(`Faculty ID "${normalizedFacultyId}" is already assigned`);
       }
-    } else {
-      throw new BadRequestException('A valid departmentId is required to register');
     }
+
+    if (!dto.departmentId) {
+      throw new BadRequestException('Please select an academic department');
+    }
+
+    const deptExists = await this.prisma.department.findUnique({
+      where: { id: dto.departmentId },
+    });
+
+    if (!deptExists) {
+      throw new BadRequestException('The selected department does not exist');
+    }
+
+    const departmentId = deptExists.id;
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
@@ -122,15 +138,23 @@ export class AuthService {
       const user = await tx.user.create({
         data: {
           name: dto.name.trim(),
-          email: dto.email.toLowerCase().trim(),
+          email: normalizedEmail,
           passwordHash,
           role: dto.role,
         },
       });
 
       if (dto.role === Role.STUDENT) {
-        const studentId =
-          dto.studentId || `STU-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+        let studentId = dto.studentId ? dto.studentId.trim().toUpperCase() : null;
+        if (!studentId) {
+          let unique = false;
+          while (!unique) {
+            studentId = `STU-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+            const exists = await tx.student.findUnique({ where: { studentId } });
+            if (!exists) unique = true;
+          }
+        }
+
         await tx.student.create({
           data: {
             userId: user.id,
@@ -140,14 +164,22 @@ export class AuthService {
           },
         });
       } else if (dto.role === Role.FACULTY) {
-        const facultyId =
-          dto.facultyId || `FAC-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+        let facultyId = dto.facultyId ? dto.facultyId.trim().toUpperCase() : null;
+        if (!facultyId) {
+          let unique = false;
+          while (!unique) {
+            facultyId = `FAC-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+            const exists = await tx.faculty.findUnique({ where: { facultyId } });
+            if (!exists) unique = true;
+          }
+        }
+
         await tx.faculty.create({
           data: {
             userId: user.id,
             facultyId,
             departmentId,
-            designation: dto.designation || 'Assistant Professor',
+            designation: dto.designation ? dto.designation.trim() : 'Assistant Professor',
           },
         });
       }
