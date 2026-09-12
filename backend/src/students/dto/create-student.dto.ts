@@ -47,6 +47,18 @@ export class CreateStudentDto {
   @Min(1, { message: 'Semester must be at least 1' })
   @Max(12, { message: 'Semester cannot exceed 12' })
   semester: number;
+
+  @ApiPropertyOptional({ description: 'Batch UUID' })
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsUUID(undefined, { message: 'batchId must be a valid UUID' })
+  batchId?: string;
+
+  @ApiPropertyOptional({ description: 'Section UUID' })
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsUUID(undefined, { message: 'sectionId must be a valid UUID' })
+  sectionId?: string;
 }
 
 export class UpdateStudentDto {
@@ -81,4 +93,16 @@ export class UpdateStudentDto {
   @Min(1, { message: 'Semester must be at least 1' })
   @Max(12, { message: 'Semester cannot exceed 12' })
   semester?: number;
+
+  @ApiPropertyOptional({ description: 'Updated Batch UUID' })
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsUUID(undefined, { message: 'batchId must be a valid UUID' })
+  batchId?: string;
+
+  @ApiPropertyOptional({ description: 'Updated Section UUID' })
+  @IsOptional()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsUUID(undefined, { message: 'sectionId must be a valid UUID' })
+  sectionId?: string;
 }

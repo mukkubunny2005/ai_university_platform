@@ -459,6 +459,18 @@ export default function AdminStudentsPage() {
                     Semester {viewingStudent.semester}
                   </span>
                 </div>
+                <div>
+                  <span className="text-slate-400 block">Batch</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5 block">
+                    {viewingStudent.batch ? `${viewingStudent.batch.name} (${viewingStudent.batch.code})` : 'Unassigned'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block">Section</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5 block">
+                    {viewingStudent.section ? `Section ${viewingStudent.section.name}` : 'Unassigned'}
+                  </span>
+                </div>
               </div>
             </div>
 

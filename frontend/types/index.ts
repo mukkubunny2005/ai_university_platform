@@ -62,6 +62,8 @@ export interface Student {
   studentId: string;
   departmentId: string;
   semester: number;
+  batchId?: string | null;
+  sectionId?: string | null;
   createdAt?: string;
   updatedAt?: string;
   user?: {
@@ -72,6 +74,8 @@ export interface Student {
     createdAt?: string;
   };
   department?: Department;
+  batch?: Batch | null;
+  section?: Section | null;
 }
 
 export interface Faculty {
@@ -94,6 +98,72 @@ export interface Faculty {
   _count?: {
     subjects: number;
   };
+}
+
+export interface AcademicYear {
+  id: string;
+  code: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  _count?: {
+    sections: number;
+    courseSemesters: number;
+  };
+}
+
+export interface Batch {
+  id: string;
+  name: string;
+  code: string;
+  startYear: number;
+  endYear: number;
+  departmentId: string;
+  courseId: string;
+  createdAt?: string;
+  updatedAt?: string;
+  department?: Department;
+  course?: Course;
+  _count?: {
+    students: number;
+    sections: number;
+  };
+}
+
+export interface Section {
+  id: string;
+  name: string;
+  semesterNumber: number;
+  departmentId: string;
+  courseId: string;
+  academicYearId: string;
+  batchId: string;
+  maxCapacity: number;
+  createdAt?: string;
+  updatedAt?: string;
+  department?: Department;
+  course?: Course;
+  academicYear?: AcademicYear;
+  batch?: Batch;
+  _count?: {
+    students: number;
+  };
+}
+
+export interface CourseSemester {
+  id: string;
+  courseId: string;
+  semesterNumber: number;
+  subjectId: string;
+  academicYearId: string;
+  createdAt?: string;
+  updatedAt?: string;
+  course?: Course;
+  subject?: Subject;
+  academicYear?: AcademicYear;
 }
 
 export interface AuthTokens {
@@ -124,3 +194,4 @@ export interface RegisterPayload {
   facultyId?: string;
   designation?: string;
 }
+

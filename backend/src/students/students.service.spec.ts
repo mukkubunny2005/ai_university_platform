@@ -69,6 +69,12 @@ describe('StudentsService', () => {
           department: {
             select: { id: true, name: true, code: true },
           },
+          batch: {
+            select: { id: true, name: true, code: true },
+          },
+          section: {
+            select: { id: true, name: true, semesterNumber: true },
+          },
         },
         orderBy: { studentId: 'asc' },
       });
@@ -182,12 +188,16 @@ describe('StudentsService', () => {
           studentId: 'STU-2026-001',
           departmentId: 'dept-1',
           semester: 1,
+          batchId: null,
+          sectionId: null,
         },
         include: {
           user: {
             select: { id: true, name: true, email: true, role: true, createdAt: true },
           },
           department: true,
+          batch: true,
+          section: true,
         },
       });
       expect(result.data.studentId).toBe('STU-2026-001');

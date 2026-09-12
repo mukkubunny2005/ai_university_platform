@@ -20,6 +20,8 @@ export const studentsApi = {
     studentId: string;
     departmentId: string;
     semester: number;
+    batchId?: string | null;
+    sectionId?: string | null;
   }) => {
     const res = await apiClient.post<ApiResponse<Student>>('/students', data);
     return res.data.data;
@@ -33,6 +35,8 @@ export const studentsApi = {
       studentId?: string;
       departmentId?: string;
       semester?: number;
+      batchId?: string | null;
+      sectionId?: string | null;
     },
   ) => {
     const res = await apiClient.patch<ApiResponse<Student>>(`/students/${id}`, data);

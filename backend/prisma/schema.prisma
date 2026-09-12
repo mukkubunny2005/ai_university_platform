@@ -37,6 +37,10 @@ model Student {
   departmentId String
   department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
   semester     Int        @default(1)
+  batchId      String?
+  batch        Batch?     @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  sectionId    String?
+  section      Section?   @relation(fields: [sectionId], references: [id], onDelete: SetNull)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -70,6 +74,8 @@ model Department {
   students Student[]
   faculty  Faculty[]
   courses  Course[]
+  batches  Batch[]
+  sections Section[]
 
   @@map("departments")
 }
@@ -85,6 +91,9 @@ model Course {
   updatedAt    DateTime   @updatedAt
 
   subjects Subject[]
+  batches  Batch[]
+  sections Section[]
+  courseSemesters CourseSemester[]
 
   @@map("courses")
 }
@@ -101,5 +110,80 @@ model Subject {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  courseSemesters CourseSemester[]
+
   @@map("subjects")
+}
+
+model AcademicYear {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sections        Section[]
+  courseSemesters CourseSemester[]
+
+  @@map("academic_years")
+}
+
+model Batch {
+  id           String     @id @default(uuid())
+  name         String
+  code         String     @unique
+  startYear    Int
+  endYear      Int
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  courseId      String
+  course        Course     @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  students Student[]
+  sections Section[]
+
+  @@map("batches")
+}
+
+model Section {
+  id             String       @id @default(uuid())
+  name           String
+  semesterNumber Int
+  departmentId   String
+  department     Department   @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  courseId        String
+  course          Course       @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  batchId        String
+  batch          Batch        @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  maxCapacity    Int          @default(60)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  students Student[]
+
+  @@unique([departmentId, courseId, semesterNumber, academicYearId, batchId, name])
+  @@map("sections")
+}
+
+model CourseSemester {
+  id             String       @id @default(uuid())
+  courseId        String
+  course          Course       @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  semesterNumber Int
+  subjectId      String
+  subject        Subject      @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([courseId, semesterNumber, subjectId, academicYearId])
+  @@map("course_semesters")
 }

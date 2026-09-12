@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -36,6 +37,20 @@ export class StudentsService {
             code: true,
           },
         },
+        batch: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+        section: {
+          select: {
+            id: true,
+            name: true,
+            semesterNumber: true,
+          },
+        },
       },
       orderBy: { studentId: 'asc' },
     });
@@ -59,6 +74,8 @@ export class StudentsService {
             createdAt: true,
           },
         },
+        batch: true,
+        section: true,
         department: {
           include: {
             courses: {
@@ -119,6 +136,35 @@ export class StudentsService {
       throw new NotFoundException(`Department with ID ${dto.departmentId} not found`);
     }
 
+    if (dto.batchId) {
+      const batch = await this.prisma.batch.findUnique({ where: { id: dto.batchId } });
+      if (!batch) {
+        throw new NotFoundException(`Batch with ID ${dto.batchId} not found`);
+      }
+      if (batch.departmentId !== dto.departmentId) {
+        throw new BadRequestException(`Batch does not belong to the student's department`);
+      }
+    }
+
+    if (dto.sectionId) {
+      const section = await this.prisma.section.findUnique({
+        where: { id: dto.sectionId },
+        include: { _count: { select: { students: true } } },
+      });
+      if (!section) {
+        throw new NotFoundException(`Section with ID ${dto.sectionId} not found`);
+      }
+      if (section.departmentId !== dto.departmentId) {
+        throw new BadRequestException(`Section does not belong to the student's department`);
+      }
+      if (dto.batchId && section.batchId !== dto.batchId) {
+        throw new BadRequestException(`Section does not belong to the specified batch`);
+      }
+      if (section._count.students >= section.maxCapacity) {
+        throw new ConflictException(`Section has reached maximum capacity of ${section.maxCapacity} students`);
+      }
+    }
+
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
     const student = await this.prisma.$transaction(async (tx) => {
@@ -137,12 +183,16 @@ export class StudentsService {
           studentId: normalizedStudentId,
           departmentId: dto.departmentId,
           semester: dto.semester,
+          batchId: dto.batchId || null,
+          sectionId: dto.sectionId || null,
         },
         include: {
           user: {
             select: { id: true, name: true, email: true, role: true, createdAt: true },
           },
           department: true,
+          batch: true,
+          section: true,
         },
       });
     });
@@ -206,6 +256,44 @@ export class StudentsService {
       studentUpdates.semester = dto.semester;
     }
 
+    const targetDeptId = dto.departmentId ?? student.departmentId;
+
+    if (dto.batchId !== undefined) {
+      if (dto.batchId !== null) {
+        const batch = await this.prisma.batch.findUnique({ where: { id: dto.batchId } });
+        if (!batch) {
+          throw new NotFoundException(`Batch with ID ${dto.batchId} not found`);
+        }
+        if (batch.departmentId !== targetDeptId) {
+          throw new BadRequestException(`Batch does not belong to the student's department`);
+        }
+      }
+      studentUpdates.batchId = dto.batchId;
+    }
+
+    if (dto.sectionId !== undefined) {
+      if (dto.sectionId !== null) {
+        const section = await this.prisma.section.findUnique({
+          where: { id: dto.sectionId },
+          include: { _count: { select: { students: true } } },
+        });
+        if (!section) {
+          throw new NotFoundException(`Section with ID ${dto.sectionId} not found`);
+        }
+        if (section.departmentId !== targetDeptId) {
+          throw new BadRequestException(`Section does not belong to the student's department`);
+        }
+        const targetBatchId = dto.batchId !== undefined ? dto.batchId : student.batchId;
+        if (targetBatchId && section.batchId !== targetBatchId) {
+          throw new BadRequestException(`Section does not belong to the student's batch`);
+        }
+        if (student.sectionId !== dto.sectionId && section._count.students >= section.maxCapacity) {
+          throw new ConflictException(`Section has reached maximum capacity of ${section.maxCapacity} students`);
+        }
+      }
+      studentUpdates.sectionId = dto.sectionId;
+    }
+
     const updated = await this.prisma.$transaction(async (tx) => {
       if (Object.keys(userUpdates).length > 0) {
         await tx.user.update({
@@ -222,6 +310,8 @@ export class StudentsService {
             select: { id: true, name: true, email: true, role: true, createdAt: true },
           },
           department: true,
+          batch: true,
+          section: true,
         },
       });
     });

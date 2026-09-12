@@ -8,6 +8,10 @@ import { FacultyModule } from './faculty/faculty.module';
 import { DepartmentsModule } from './departments/departments.module';
 import { CoursesModule } from './courses/courses.module';
 import { SubjectsModule } from './subjects/subjects.module';
+import { AcademicYearsModule } from './academic-years/academic-years.module';
+import { BatchesModule } from './batches/batches.module';
+import { SectionsModule } from './sections/sections.module';
+import { CourseSemestersModule } from './course-semesters/course-semesters.module';
 
 @Module({
   imports: [
@@ -23,6 +27,10 @@ import { SubjectsModule } from './subjects/subjects.module';
     DepartmentsModule,
     CoursesModule,
     SubjectsModule,
+    AcademicYearsModule,
+    BatchesModule,
+    SectionsModule,
+    CourseSemestersModule,
   ],
 })
 export class AppModule {}

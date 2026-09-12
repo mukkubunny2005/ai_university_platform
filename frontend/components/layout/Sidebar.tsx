@@ -15,6 +15,9 @@ import {
   User,
   LogOut,
   Sparkles,
+  Calendar,
+  CalendarRange,
+  Layers,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Badge } from '../ui/Badge';
@@ -34,6 +37,10 @@ export function Sidebar({
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Departments', href: '/admin/departments', icon: Building2 },
     { label: 'Courses', href: '/admin/courses', icon: BookOpen },
+    { label: 'Academic Years', href: '/admin/academic-years', icon: Calendar },
+    { label: 'Batches', href: '/admin/batches', icon: CalendarRange },
+    { label: 'Sections', href: '/admin/sections', icon: Layers },
+    { label: 'Course Semesters', href: '/admin/course-semesters', icon: BookMarked },
     { label: 'Subjects', href: '/admin/subjects', icon: Library },
     { label: 'Students', href: '/admin/students', icon: GraduationCap },
     { label: 'Faculty', href: '/admin/faculty', icon: UserCheck },
