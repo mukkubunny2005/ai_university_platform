@@ -195,7 +195,7 @@ export class StudentsService {
           section: true,
         },
       });
-    });
+    }, { maxWait: 10000, timeout: 15000 });
 
     return {
       message: 'Student created successfully',
@@ -314,7 +314,7 @@ export class StudentsService {
           section: true,
         },
       });
-    });
+    }, { maxWait: 10000, timeout: 15000 });
 
     return {
       message: 'Student updated successfully',

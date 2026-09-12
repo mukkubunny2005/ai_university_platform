@@ -185,7 +185,7 @@ export class AuthService {
       }
 
       return user;
-    });
+    }, { maxWait: 10000, timeout: 15000 });
 
     const tokens = await this.generateTokens(result.id, result.email, result.role);
     await this.updateRefreshTokenHash(result.id, tokens.refreshToken);
