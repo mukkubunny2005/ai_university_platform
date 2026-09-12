@@ -9,6 +9,10 @@ pnpm-debug.log*
 frontend/.next/
 frontend/out/
 frontend/build/
+AGENTS.md
+CLAUDE.md
+frontend/AGENTS.md
+frontend/CLAUDE.md
 
 # NestJS Build Outputs
 backend/dist/
