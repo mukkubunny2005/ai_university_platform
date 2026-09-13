@@ -77,7 +77,7 @@ export default function AdminDashboard() {
 
             <div className="flex items-center gap-2">
               <a
-                href="http://localhost:4000/api/docs"
+                href={`${(process.env.NEXT_PUBLIC_API_URL || 'https://ai-university-platform-backend.onrender.com').replace(/\/+$/, '')}/api/docs`}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold border border-white/20 transition-all backdrop-blur-md"
